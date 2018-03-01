@@ -1,4 +1,4 @@
-##---- obtain the known datasets:----
+##---- Obtain the known datasets:----
 
 ## import nc datafile (temperature 1900-2016)
 ncname <- "tmp_new"
@@ -58,9 +58,13 @@ tmp.df.omit.na <- na.omit(eval.tmp.mat.coordinates)
 
 names(tmp.df.omit.na)[1] <- "lon"
 names(tmp.df.omit.na)[2] <- "lat"
-## Slice the data of China region
 
 china.temperature <- subset(tmp.df.omit.na, lon > 83 & lon < 130 & lat < 50 & lat > 20)
+
+## Slice the data of China region
+
+
+
 
 
 #---- Obtain the unkown coordinates ---------
@@ -70,7 +74,7 @@ my.data <- read.xlsx("E:/Yu/Dropbox/Paper with Ami/Data/with climate data and WW
 wwtp.coordinates <- data.frame(my.data$Longitude, my.data$Latitude)
 colnames(wwtp.coordinates) <- c("lon", "lat")
 
-#---- Use the original temperature data to interpolate the unknown to obtan the datasets for WWTP----
+#---- Interpolation by inverse distance weighting----
 
 ## For the idw function: input variables:
 ## knowndt; unknowndt (coordinates) 
@@ -85,9 +89,92 @@ coordinates(unknowndt) <- ~ lon + lat
 
 idwmodel.list <- list()
 pred.temperature <- matrix(rep(0, 165 * 360), ncol = 360, byrow = TRUE)
-for (i in 1:nrow(wwtp.coordinates)){
+for (i in 1: 360) {
   idwmodel.list[[i]] <- idw(attributes[, i] ~1, knowndt, unknowndt, maxdist = 0.5, idp = 2)
   pred.temperature[,i] <- idwmodel.list[[i]]@data$var1.pred
 }
+
+
+
+## add the coordinates to the temperature (IDW) data
+wwtp.temperature.dataset <- cbind(wwtp.coordinates, pred.temperature)
+write.xlsx(wwtp.temperature.dataset, "E:/Yu/Dropbox/Paper with Ami/Data/monthly_mean_temperature.xlsx")
+
+#---------------------- Statistical calculation----------------
+##---- Mean annual temperature----
+
+mean.annual.temperature <- as.data.frame(apply(pred.temperature, 1, mean))
+write.xlsx(mean.annual.temperature, "E:/Yu/Dropbox/Paper with Ami/Data/mean_temperature.xlsx")
+
+
+##---- Inter-annual variance and CV of temperature----
+
+## The WWTP dataset: pred.temperature
+## Create an array from the matrix of 30 years' temperature data
+wwtp.tmp.array <- array(pred.temperature, dim=c(nrow(pred.temperature),12,30))
+
+## Calculate the mean temperature of each year for all 30 years
+
+annual.wwtp.tmp.array <- apply(wwtp.tmp.array, c(1,3),mean)
+
+## Calculate the variance of the inter-annual temperature
+
+var.inter.annual.tmp <- as.data.frame(apply(annual.wwtp.tmp.array,1,var))
+write.xlsx(var.inter.annual.tmp, "E:/Yu/Dropbox/Paper with Ami/Data/var_inter_temperature.xlsx")
+
+## Calculate the Coefficient of Variation for inter-annual
+library(raster)
+cv.inter.annual.tmp <- as.data.frame(apply(annual.wwtp.tmp.array,1, cv))
+write.xlsx(cv.inter.annual.tmp, "E:/Yu/Dropbox/Paper with Ami/Data/cv_inter_temperature.xlsx")
+
+##-----Intra-annual variance of temperature----
+
+## Transpose the matrix so that when filling a new matrix, the order of the value is correct
+
+transpose.wwtp.tmp.mat <- t(pred.temperature)
+
+## Create a new matrix
+month.matrix <- matrix(transpose.wwtp.tmp.mat, ncol=12, byrow=TRUE)
+
+## Create an array, each 3d array represents a month
+month.array <- array(month.matrix, dim = c(nrow(transpose.wwtp.tmp.mat) * 
+                                             ncol(transpose.wwtp.tmp.mat) / 12
+                                           ,1,12))
+## Calculate the mean monthly temperature (30 years) for each WWTP coordinate
+
+store.list <- list()
+month.data.frame <- data.frame(rep(0,nrow(wwtp.coordinates)))
+for (i in 1:12){
+  store.list[[i]]<- matrix(month.array[,,i], ncol = 30, byrow = TRUE)
+  month.data.frame <- cbind(month.data.frame, 
+                            data.frame(c(apply(store.list[[i]],1,mean))))
+  
+}
+colnames(month.data.frame) <- c("empty","Jan", "Feb", "Mar", "April",
+                                "May", "Jun", "Jul", "Aug",
+                                "Sep", "Oct", "Nov", "Dec")
+month.data.frame <- month.data.frame[2:13]
+
+## Calculate the intra-annual variance of the temperature
+tmp.intra.var <- as.data.frame(apply(month.data.frame,1,var))
+write.xlsx(tmp.intra.var, "E:/Yu/Dropbox/Paper with Ami/Data/var_intra_temperature.xlsx")
+
+## Calculate the intra-annual CV of the temperature
+cv.intra.annual.tmp <- as.data.frame(apply(month.data.frame,1, cv))
+write.xlsx(cv.intra.annual.tmp, "E:/Yu/Dropbox/Paper with Ami/Data/cv_intra_temperature.xlsx")
+
+
+##-----Intra-annual variance on an annual basis-------
+## The WWTP dataset: pred.temperature
+## Create an array from the matrix of 30 years' temperature data
+wwtp.tmp.array <- array(pred.temperature, dim=c(nrow(pred.temperature),12,30))
+
+intra.annual.wwtp.tmp.var <- apply(wwtp.tmp.array, c(1,3), var)
+write.xlsx(intra.annual.wwtp.tmp.var, "E:/Yu/Dropbox/Paper with Ami/Data/annual_var_intra_temperature.xlsx")
+
+##-----Intra-annual CV on an annual basis----
+
+intra.annual.wwtp.tmp.cv <- apply(wwtp.tmp.array, c(1,3), cv)
+write.xlsx(intra.annual.wwtp.tmp.cv, "E:/Yu/Dropbox/Paper with Ami/Data/annual_cv_intra_temperature.xlsx")
 
 
