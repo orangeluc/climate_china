@@ -57,8 +57,8 @@ eval.pre.array <- array(eval.pre.mat,dim=c(nrow(eval.pre.mat),12,30))
 
 annual.pre.array <- apply(eval.pre.array, c(1,3),sum)
 
-mean.pre <- as.data.frame(apply(annual.pre.array,1,mean))
-results.pre <- cbind(lonlat, mean.pre )
+max.pre <- as.data.frame(apply(annual.pre.array,1,max))
+results.pre <- cbind(lonlat, max.pre)
 results.pre.omit.na <- na.omit(results.pre)
 colnames(results.pre.omit.na) <- c("lon", "lat", "pre")
 

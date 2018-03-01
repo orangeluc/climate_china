@@ -53,7 +53,7 @@ point <- c(116.44552, 39.85517)
 
 distance <- spDistsN1(surroundings, point, longlat = FALSE)
 
-attributes <- c(467.22, 486.7633, 482.52, 460.6833)
+attributes <- c(12.1419447, 13.2750002, 13.0644446, 10.9350002)
 
 weight.square <- 1 / (distance ^ 2)
 
@@ -90,3 +90,7 @@ coordinates(unknowndt) <- ~ lon + lat
 
 idwmodel <- idw(attributes ~1, knowndt, unknowndt, maxdist = 0.5, idp = 2)
 predZ <- idwmodel@data$var1.pred
+
+write.xlsx(predZ, "E:/Yu/Dropbox/Paper with Ami/Data/min_precipitation_idw.xlsx")
+
+
