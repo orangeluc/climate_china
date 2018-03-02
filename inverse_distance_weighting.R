@@ -4,10 +4,10 @@ location <- data.frame(my.data$Longitude, my.data$Latitude)
 colnames(location) <- c("lon", "lat")
 
 library(rworldmap)
-newmap <- getMap(resolution = "low")
+newmap <- getMap(resolution = "high")
 plot(newmap, xlim = c(70,135), ylim=c(20,50), asp = 1)
-points(location$lon,location$lat, col="red", cex = .6)
-points(china.pre.omit.na$lon,china.pre.omit.na$lat, col = "green", cex = .6)
+points(wwtp.coordinates$lon,wwtp.coordinates$lat, col="red", cex = 1)
+
 
 
 

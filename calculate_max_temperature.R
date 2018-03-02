@@ -1,6 +1,6 @@
-ncname <- "tmp_new"
+ncname <- "tmx"
 ncfname <- paste0(ncname,".nc")
-dname <- "tmp"
+dname <- "tmx"
 
 ncin <- nc_open(ncfname)
 print(ncin)
@@ -16,7 +16,7 @@ t <- ncvar_get(ncin, "time")
 tunits <- ncatt_get(ncin, "time", "units")
 nt <- dim(t)
 
-tmp.array <- ncvar_get(ncin,dname)
+tmx.array <- ncvar_get(ncin,dname)
 dlname <- ncatt_get(ncin, dname, "long_name")
 dunits <- ncatt_get(ncin,dname,"units")
 fillvalue <- ncatt_get(ncin, dname, "_FillValue")
@@ -35,30 +35,30 @@ tday = as.integer(unlist(tdstr)[3])
 tyear = as.integer(unlist(tdstr)[1])
 chron(t, origin = c(tmonth, tday, tyear))
 
-tmp.array[tmp.array == fillvalue$value] <- NA
+tmx.array[tmx.array == fillvalue$value] <- NA
 
 m <- 1
-tmp.slice <- tmp.array[ , , m]
+tmx.slice <- tmx.array[ , , m]
 
-lonlat <- expand.grid(lon, lat)
-tmp.vec <- as.vector(tmp.slice)
-length(tmp.vec)
+lonlat <- expand.grid(lon, lat)  ##important function
+tmx.vec <- as.vector(tmx.slice)
+length(tmx.vec)
 
-tmp.vec.long <- as.vector(tmp.array)
+tmx.vec.long <- as.vector(tmx.array)
 
-tmp.mat <- matrix(tmp.vec.long, nrow = nlon * nlat, ncol = nt)
-eval.tmp.mat <- tmp.mat[,1033:1392]
-tmp.df.mean <- data.frame(cbind(lonlat,eval.tmp.mat))
-mean.tmp <- as.data.frame(apply(tmp.df.mean[3:362],1,mean))
-results.tmp <- cbind(lonlat, mean.tmp )
-results.tmp.omit.na <- na.omit(results.tmp)
-colnames(results.tmp.omit.na) <- c("lon", "lat", "tmp")
+tmx.mat <- matrix(tmx.vec.long, nrow = nlon * nlat, ncol = nt)
+eval.tmx.mat <- tmx.mat[,1033:1392]
+tmx.df.mean <- data.frame(cbind(lonlat,eval.tmx.mat))
+max.tmx <- as.data.frame(apply(tmx.df.mean[3:362],1,max))
+results.tmx <- cbind(lonlat, max.tmx )
+results.tmx.omit.na <- na.omit(results.tmx)
+colnames(results.tmx.omit.na) <- c("lon", "lat", "tmx")
 
-china.tmp.omit.na <- subset(results.tmp.omit.na,lon>83 & lon <  130 & lat < 50 & lat > 20)
+china.tmx.omit.na <- subset(results.tmx.omit.na,lon>83 & lon <  130 & lat < 50 & lat > 20)
 
-my.data <- read.xlsx("E:/Yu/Dropbox/Paper with Ami/Data/with climate data_yuan.xlsx", 
+my.data <- read.xlsx("E:/Yu/Dropbox/Paper with Ami/Data/with climate data and WWTP coordinate.xlsx", 
                      sheetName = "bundled")
-location <- data.frame(my.data$Longtitude, my.data$Latitude)
+location <- data.frame(my.data$Longitude, my.data$Latitude)
 colnames(location) <- c("lon", "lat")
 
 
@@ -71,7 +71,7 @@ temperature.result <- data.frame(rep(0,length(my.lon.check)))
 lon.result <- data.frame(rep(0,length(my.lon.check)))
 lat.result <- data.frame(rep(0,length(my.lon.check)))
 for (i in seq_along(my.lon.check)) {
-
+  
   a <- which(abs(lon.check-my.lon.check[i])== min(abs(lon.check - my.lon.check[i])))
   b <- which(abs(lat.check-my.lat.check[i])== min(abs(lat.check - my.lat.check[i])))
   k <- Reduce(intersect,list(a,b))
@@ -80,7 +80,7 @@ for (i in seq_along(my.lon.check)) {
   temperature.result[i,1] <- china.tmp.omit.na[k,3]
 }
 compare.result <- as.data.frame(cbind(lon.result, lat.result, temperature.result))
-colnames(temperature.result) <- "mean annual temperature"
+colnames(temperature.result) <- "minimum annual temperature"
 
 write.xlsx(temperature.result, "E:/Yu/Dropbox/Paper with Ami/Data/temperature.xlsx")
 

@@ -134,7 +134,7 @@ write.xlsx(var.inter.annual.pre, "E:/Yu/Dropbox/Paper with Ami/Data/var_inter_pr
 
 ## Calculate the Coefficient of Variation for inter-annual
 library(raster)
-cv.inter.annual.pre <- as.data.frame(apply(annual.wwtp.pre.array,1, cv))
+cv.inter.annual.pre <- as.data.frame(apply(annual.pre,1, cv))
 write.xlsx(cv.inter.annual.pre, "E:/Yu/Dropbox/Paper with Ami/Data/cv_inter_precipitation.xlsx")
 
 ##-----Intra-annual variance of precipitation----
@@ -176,15 +176,13 @@ write.xlsx(cv.intra.annual.pre, "E:/Yu/Dropbox/Paper with Ami/Data/cv_intra_prec
 
 ##-----Intra-annual variance on an annual basis-------
 ## The WWTP dataset: pred.precipitation
-## Create an array from the matrix of 30 years' precipitation data
-wwtp.pre.array <- array(pred.precipitation, dim=c(nrow(pred.precipitation),12,30))
 
-intra.annual.wwtp.pre.var <- apply(wwtp.pre.array, c(1,3), var)
+intra.annual.wwtp.pre.var <- apply(pre.array, c(1,3), var)
 write.xlsx(intra.annual.wwtp.pre.var, "E:/Yu/Dropbox/Paper with Ami/Data/annual_var_intra_precipitation.xlsx")
 
 ##-----Intra-annual CV on an annual basis----
 
-intra.annual.wwtp.pre.cv <- apply(wwtp.pre.array, c(1,3), cv)
+intra.annual.wwtp.pre.cv <- apply(pre.array, c(1,3), cv)
 write.xlsx(intra.annual.wwtp.pre.cv, "E:/Yu/Dropbox/Paper with Ami/Data/annual_cv_intra_precipitation.xlsx")
 
 
